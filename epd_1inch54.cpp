@@ -91,6 +91,15 @@ void Epaper_Write_Data(unsigned char data)
    EPD_W21_CS_1;
 }
 
+static void EPD_SetCursorToStart(void)
+{
+  Epaper_Write_Command(0x4E);   // set RAM x address count to 0
+  Epaper_Write_Data(0x00);
+  Epaper_Write_Command(0x4F);   // set RAM y address count to 0x00C7
+  Epaper_Write_Data(0xC7);
+  Epaper_Write_Data(0x00);
+}
+
 /////////////////EPD settings Functions/////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////
 void EPD_HW_Init(void)
@@ -144,11 +153,13 @@ void EPD_HW_Init(void)
 void EPD_WhiteScreen_ALL(const unsigned char * BWdatas,const unsigned char * RWdatas)
 {
    unsigned int i;
+   EPD_SetCursorToStart();
    Epaper_Write_Command(0x24);   //write RAM for black(0)/white (1)
    for(i=0;i<ALLSCREEN_GRAGHBYTES;i++)
    {               
      Epaper_Write_Data(pgm_read_byte(&BWdatas[i]));
    }
+   EPD_SetCursorToStart();
    Epaper_Write_Command(0x26);   //write RAM for red(0)/white (1)
    for(i=0;i<ALLSCREEN_GRAGHBYTES;i++)
    {               
@@ -172,12 +183,27 @@ void EPD_DeepSleep(void)
   Epaper_Write_Data(0x01); 
   delay(100);
 }
+
+bool Epaper_WaitBusy(uint32_t timeout_ms)
+{
+  unsigned long start = millis();
+  while(isEPD_W21_BUSY == 1)
+  {
+    if((millis() - start) >= timeout_ms)
+    {
+      return false;
+    }
+    delay(1);
+  }
+  return true;
+}
+
 void Epaper_READBUSY(void)
 { 
-  while(1)
-  {   //=1 BUSY
-     if(isEPD_W21_BUSY==0) break;
-  }  
+  if(!Epaper_WaitBusy(30000))
+  {
+    Serial.println("EPD BUSY timeout after 30000ms");
+  }
 }
 
 void EPD_HW_Init_GUI(void)
@@ -248,6 +274,7 @@ void EPD_WhiteScreen_White(void)
 
 {
     unsigned int i,k;
+    EPD_SetCursorToStart();
     Epaper_Write_Command(0x24);   //write RAM for black(0)/white (1)
     for(k=0;k<200;k++)
     {
@@ -256,6 +283,7 @@ void EPD_WhiteScreen_White(void)
            Epaper_Write_Data(0xff);
         }
     }
+    EPD_SetCursorToStart();
     Epaper_Write_Command(0x26);  
     for(k=0;k<200;k++)
     {
@@ -273,6 +301,7 @@ void EPD_Display(unsigned char *BWImage,unsigned char *RWImage)
     width = (EPD_WIDTH % 8 == 0)? (EPD_WIDTH / 8 ): (EPD_WIDTH / 8 + 1);
     Height = EPD_HEIGHT;
 
+    EPD_SetCursorToStart();
     Epaper_Write_Command(0x24);
     for ( j = 0; j < Height; j++) 
     {
@@ -281,6 +310,7 @@ void EPD_Display(unsigned char *BWImage,unsigned char *RWImage)
            Epaper_Write_Data(BWImage[i + j * width]);
         }
     }
+    EPD_SetCursorToStart();
     Epaper_Write_Command(0x26);
     for ( j = 0; j < Height; j++) 
     {

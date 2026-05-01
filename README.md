@@ -2,8 +2,9 @@
 
 Arduino-compatible driver and drawing utilities for a 1.54" tri-color e-paper display (black/white/red) on an ESP32-C3 SuperMini.
 
-This repository contains the display driver, drawing primitives, fonts, and demo image data.  
-It currently does **not** include a `.ino` sketch file, so you add your own sketch entrypoint.
+This repository contains the display driver, drawing primitives, fonts, demo image data, and a test sketch:
+
+- `Arduino_ESP32_1.54.ino`
 
 ## Features
 
@@ -43,6 +44,7 @@ Optional onboard LED test (if present on your board):
 - `epd_gui.h/.cpp`: drawing primitives + frame-buffer logic
 - `fonts.h` + `font*.cpp`: built-in font tables
 - `epd_demo.h`: large bitmap demo array
+- `Arduino_ESP32_1.54.ino`: stable refresh test for ESP32-C3
 
 ## Quick Start (Arduino IDE)
 
@@ -50,8 +52,8 @@ Optional onboard LED test (if present on your board):
 2. Install **ESP32 by Espressif Systems** in Boards Manager.
 3. Select your board (usually `ESP32C3 Dev Module` or your SuperMini variant).
 4. Put all files from this repo into one Arduino sketch folder.
-5. Create a sketch file (for example `Arduino_ESP32_1.54.ino`) next to these files.
-6. Upload the example below.
+5. Open `Arduino_ESP32_1.54.ino`.
+6. Upload to your ESP32-C3.
 
 ## Minimal Example Sketch
 
@@ -109,7 +111,14 @@ void loop() {
 - Display size is fixed at `200x200`.
 - Each layer buffer is `5000` bytes (`200 * 200 / 8`).
 - This code path is full-refresh oriented (not partial-refresh optimized).
-- `BUSY` is polled in a blocking loop; wiring/power issues can make updates hang.
+- `BUSY` is polled with timeout protection; if wiring/power is wrong you will see timeout messages on Serial.
+
+## Refresh Behavior (Important)
+
+- Tri-color e-paper refresh is inherently slow and visibly flickers.
+- For this 1.54" B panel class, full refresh is typically around ~14 seconds.
+- Multiple black/white/red flashes during refresh are expected and needed for ghosting cleanup.
+- The included test sketch uses a long refresh interval (`180s`) to match vendor recommendations for tri-color operation.
 
 ## Troubleshooting
 

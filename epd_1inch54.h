@@ -67,6 +67,7 @@ void SPI_Write(unsigned char value);
 void Epaper_Write_Command(unsigned char command);
 void Epaper_Write_Data(unsigned char data);
 
+bool Epaper_WaitBusy(uint32_t timeout_ms);
 void Epaper_READBUSY(void);
 
 void EPD_HW_Init(void);
