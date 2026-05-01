@@ -120,6 +120,5 @@ void loop() {
 
 ## License
 
-No license file is currently included in this repository.  
-Add a license before publishing or reusing in other projects.
-
+This project is licensed under the MIT License.  
+See the `LICENSE` file for details.
